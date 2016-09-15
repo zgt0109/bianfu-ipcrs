@@ -18,6 +18,16 @@ Bundler.require(*Rails.groups)
 
 module BianfuIpcrs
   class Application < Rails::Application
+    
+    # Rack CORS Middleware
+    config.middleware.insert_before 0, Rack::Cors do
+      allow do
+        origins '*'
+        resource '*', :headers => :any, :methods => [:get, :post, :options]
+      end
+    end
+
+    ActiveModel::Serializer.config.adapter = :json_api
     # Setting for Rspec
     config.generators do |g|
       g.test_framework :rspec,

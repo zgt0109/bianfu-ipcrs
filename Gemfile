@@ -65,3 +65,6 @@ group :test do
   gem 'shoulda-matchers', '~> 3.1'
   gem 'faker', '~> 1.6'
 end
+
+gem 'active_model_serializers', '~> 0.10.2'
+gem 'rack-cors', '~> 0.4.0'
