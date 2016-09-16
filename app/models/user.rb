@@ -19,7 +19,9 @@
 #
 
 class User < ApplicationRecord
-  include Ipcrs
+  include IpcrsCommon
+  include IpcrsRegistry
+  include IpcrsLogin
 
   before_create {
     self.account = "bf_#{(0..9).to_a.shuffle[0..6].join}"

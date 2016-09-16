@@ -1,10 +1,10 @@
-module Ipcrs
+module IpcrsRegistry
   extend ActiveSupport::Concern
 
 
   included do
 
-    def ipcrs_bootstrap
+    def ipcrs_registry_bootstrap
       url = 'https://ipcrs.pbccrc.org.cn/userReg.do?method=initReg'
       headers = {
         'Host'        => 'ipcrs.pbccrc.org.cn',
@@ -18,7 +18,7 @@ module Ipcrs
     end
 
     # 图片验证码解析
-    def ipcrs_captcha_image
+    def ipcrs_registry_captcha_image
       url = 'https://ipcrs.pbccrc.org.cn/imgrc.do'
       headers = {
         'Host'      => 'ipcrs.pbccrc.org.cn',
@@ -46,7 +46,7 @@ module Ipcrs
 
 
     # 检查用户是否注册
-    def ipcrs_check_identity
+    def ipcrs_registry_identity
       url = 'https://ipcrs.pbccrc.org.cn/userReg.do'
       headers = {
         'Host'      => 'ipcrs.pbccrc.org.cn',
@@ -74,7 +74,7 @@ module Ipcrs
 
 
     # 发送短信验证码
-    def ipcrs_captcha_mobile
+    def ipcrs_registry_captcha_mobile
       url = 'https://ipcrs.pbccrc.org.cn/userReg.do'
       headers = {
         'Host'      => 'ipcrs.pbccrc.org.cn',
@@ -92,7 +92,7 @@ module Ipcrs
 
     # 用户注册
 
-    def ipcrs_registroy
+    def ipcrs_registry
       url = 'https://ipcrs.pbccrc.org.cn/userReg.do'
       headers = {
         'Host'      => 'ipcrs.pbccrc.org.cn',
@@ -112,22 +112,18 @@ module Ipcrs
         'userInfoVO.verifyCode' => payload['mobile']
       }
       response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
-      
+
       if response.body.encode('UTF-8').match('您在个人信用信息平台已注册成功')
         self.state = 'registered'
         save
       end
-    end
 
-  private
-    def ipcrs_cookie_file
-      Rails.root.join('tmp', 'cache', "#{self.id}.cookie").to_s
-    end
-
-    def ipcrs_cookie
-      jar = HTTP::CookieJar.new
-      HTTP::Cookie.cookie_value(jar.load(ipcrs_cookie_file).cookies) if File.exist?(ipcrs_cookie_file)
+      # @TODO: 参数错误302 待处理
+      # @TODO: 用户名已经存在
+      if response.body.encode('UTF-8').match('此手机号码已注册')
+        self.state = 'failed_mobile_exist'
+        save
+      end
     end
   end
-
 end
