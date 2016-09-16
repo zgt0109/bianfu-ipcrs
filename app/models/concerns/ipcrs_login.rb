@@ -59,5 +59,21 @@ module IpcrsLogin
       }
       response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
     end
+
+    # 设置安全等级
+    def ipcrs_login_safe
+      url = 'https://ipcrs.pbccrc.org.cn/setSafetyLevel.do'
+      headers = {
+        'Host'      => 'ipcrs.pbccrc.org.cn',
+        'Referer'   => 'https://ipcrs.pbccrc.org.cn/setSafetyLevel.do?method=index&isnew=true',
+        'Cookie'    =>  ipcrs_cookie
+      }
+      params = {
+        'method' => 'setSafetyLevelStep2',
+      }
+      response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
+      payload['csrf_safe'] = response.body.match(/value=.*([a-z0-9]{32})/)[1]
+      save
+    end
   end
 end
