@@ -63,8 +63,13 @@ module Ipcrs
         '1' => 'on'
       }
       response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
-      payload['csrf_reg']    = response.body.match(/value=.*([a-z0-9]{32})/)[1]
-      save
+      if response.body.encode('UTF-8').match('您已注册过用户')
+        self.state = 'failed_registered'
+        save
+      else
+        payload['csrf_reg']    = response.body.match(/value=.*([a-z0-9]{32})/)[1]
+        save
+      end
     end
 
 
@@ -83,6 +88,35 @@ module Ipcrs
       response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
       payload['tcid'] = response.to_s
       save
+    end
+
+    # 用户注册
+
+    def ipcrs_registroy
+      url = 'https://ipcrs.pbccrc.org.cn/userReg.do'
+      headers = {
+        'Host'      => 'ipcrs.pbccrc.org.cn',
+        'Referer'   => 'https://ipcrs.pbccrc.org.cn/userReg.do',
+        'Cookie'    =>  ipcrs_cookie
+      }
+      params = {
+        'org.apache.struts.taglib.html.TOKEN' => payload['csrf_reg'],
+        'method' => 'saveUser',
+        'counttime' => '',
+        'tcId' => payload['tcid'],
+        'userInfoVO.loginName' => account,
+        'userInfoVO.password' => password,
+        'userInfoVO.confirmpassword' => password,
+        'userInfoVO.email' => '',
+        'userInfoVO.mobileTel' => mobile,
+        'userInfoVO.verifyCode' => payload['mobile']
+      }
+      response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
+      
+      if response.body.encode('UTF-8').match('您在个人信用信息平台已注册成功')
+        self.state = 'registered'
+        save
+      end
     end
 
   private

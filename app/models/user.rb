@@ -22,7 +22,7 @@ class User < ApplicationRecord
   include Ipcrs
 
   before_create {
-    self.account = "#{Pinyin.t(name, splitter: '')}#{cert_no.last(6)}"
+    self.account = "bf_#{(0..9).to_a.shuffle[0..6].join}"
     self.password = "#{Pinyin.t(name, splitter: '')}#{cert_no.last(6)}"
     self.payload = {}
   }

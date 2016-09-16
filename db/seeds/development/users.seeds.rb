@@ -21,6 +21,6 @@
     cert_no: '612601197910220624'
   },
 ].each do|person|
-  user = User.new(person.merge(mobile: '13185844143'))
+  user = User.new(person.merge(mobile: '18175184375'))
   puts "添加测试用户: #{user.cert_no}(#{user.name})" if user.save
 end
