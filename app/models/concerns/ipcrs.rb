@@ -3,6 +3,7 @@ module Ipcrs
 
 
   included do
+
     def ipcrs_bootstrap
       url = 'https://ipcrs.pbccrc.org.cn/userReg.do?method=initReg'
       headers = {
@@ -14,6 +15,33 @@ module Ipcrs
       response.cookie_jar.save(ipcrs_cookie_file, :session => true)
       self.payload = {csrf_identity: response.body.match(/value=.*([a-z0-9]{32})/)[1]}
       save
+    end
+
+    # 图片验证码解析
+    def ipcrs_captcha_image
+      url = 'https://ipcrs.pbccrc.org.cn/imgrc.do'
+      headers = {
+        'Host'      => 'ipcrs.pbccrc.org.cn',
+        'Referer'   => 'https://ipcrs.pbccrc.org.cn/userReg.do?method=initReg',
+        'Cookie'    =>  ipcrs_cookie
+      }
+      headers[:params] = {
+        a: (Time.now.to_f*1000).to_i
+      }
+      response = RestClient::Request.execute(method: 'get', url: url, :headers => headers, :verify_ssl=> false)
+
+      # 超级鹰
+      params = {
+      	'user'     => '2008futao',
+      	'pass'     => '198659',
+      	'softid'   => '891709',
+      	'codetype' => 5000,
+      	'file_base64' => Base64.encode64(response.body)
+      }
+     response = RestClient.post 'http://upload.chaojiying.net/Upload/Processing.php', params
+     response = JSON.parse(response)
+     self.payload[:image] = response['pic_str'].downcase
+     save
     end
 
   private
