@@ -18,7 +18,10 @@ Bundler.require(*Rails.groups)
 
 module BianfuIpcrs
   class Application < Rails::Application
-    
+
+
+    RestClient.proxy = 'http://127.0.0.1:8888' if Rails.env.development?
+
     # Rack CORS Middleware
     config.middleware.insert_before 0, Rack::Cors do
       allow do

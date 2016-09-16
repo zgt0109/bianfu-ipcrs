@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160916110846) do
+ActiveRecord::Schema.define(version: 20160916113233) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -37,6 +37,7 @@ ActiveRecord::Schema.define(version: 20160916110846) do
     t.string   "state",                   comment: "状态"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.json     "payload"
     t.index ["state"], name: "index_users_on_state", using: :btree
   end
 

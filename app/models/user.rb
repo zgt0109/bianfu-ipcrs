@@ -11,6 +11,7 @@
 #  state      :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
+#  payload    :json
 #
 # Indexes
 #
@@ -18,6 +19,7 @@
 #
 
 class User < ApplicationRecord
+  include Ipcrs
 
   before_create {
     self.account = "#{Pinyin.t(name, splitter: '')}#{cert_no.last(6)}"
