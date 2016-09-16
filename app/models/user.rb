@@ -24,5 +24,6 @@ class User < ApplicationRecord
   before_create {
     self.account = "#{Pinyin.t(name, splitter: '')}#{cert_no.last(6)}"
     self.password = "#{Pinyin.t(name, splitter: '')}#{cert_no.last(6)}"
+    self.payload = {}
   }
 end

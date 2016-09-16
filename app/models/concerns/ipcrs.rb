@@ -13,7 +13,7 @@ module Ipcrs
       }
       response        = RestClient::Request.execute(method: 'get', url: url, :headers => headers, :verify_ssl=> false)
       response.cookie_jar.save(ipcrs_cookie_file, :session => true)
-      self.payload = {csrf_identity: response.body.match(/value=.*([a-z0-9]{32})/)[1]}
+      payload['csrf_identity'] = response.body.match(/value=.*([a-z0-9]{32})/)[1]
       save
     end
 
@@ -40,8 +40,31 @@ module Ipcrs
       }
      response = RestClient.post 'http://upload.chaojiying.net/Upload/Processing.php', params
      response = JSON.parse(response)
-     self.payload[:image] = response['pic_str'].downcase
+     payload[:image] = response['pic_str'].downcase
      save
+    end
+
+
+    # 检查用户是否注册
+    def ipcrs_check_identity
+      url = 'https://ipcrs.pbccrc.org.cn/userReg.do'
+      headers = {
+        'Host'      => 'ipcrs.pbccrc.org.cn',
+        'Referer'   => 'https://ipcrs.pbccrc.org.cn/userReg.do?method=initReg',
+        'Cookie'    =>  ipcrs_cookie
+      }
+      params = {
+        'org.apache.struts.taglib.html.TOKEN' => payload['csrf_identity'],
+        'method' => 'checkIdentity',
+        'userInfoVO.name' => name.encode('GBK'),
+        'userInfoVO.certType' => 0,
+        'userInfoVO.certNo' => cert_no,
+        '_@IMGRC@_' => payload['image'],
+        '1' => 'on'
+      }
+      response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
+      payload['csrf_reg']    = response.body.match(/value=.*([a-z0-9]{32})/)[1]
+      save
     end
 
   private
