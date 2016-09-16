@@ -50,6 +50,7 @@ GEM
     arel (7.1.2)
     builder (3.2.2)
     byebug (9.0.5)
+    chinese_pinyin (1.0.1)
     choice (0.2.0)
     chronic (0.10.2)
     coderay (1.1.1)
@@ -245,6 +246,7 @@ DEPENDENCIES
   active_model_serializers (~> 0.10.2)
   annotate (~> 2.7)
   byebug
+  chinese_pinyin (~> 1.0, >= 1.0.1)
   database_cleaner (~> 1.5)
   dotenv-rails (~> 2.1)
   factory_girl_rails (~> 4.7)
