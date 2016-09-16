@@ -67,6 +67,24 @@ module Ipcrs
       save
     end
 
+
+    # 发送短信验证码
+    def ipcrs_captcha_mobile
+      url = 'https://ipcrs.pbccrc.org.cn/userReg.do'
+      headers = {
+        'Host'      => 'ipcrs.pbccrc.org.cn',
+        'Referer'   => 'https://ipcrs.pbccrc.org.cn/userReg.do',
+        'Cookie'    =>  ipcrs_cookie
+      }
+      params = {
+        'method'=>'getAcvitaveCode',
+        'mobileTel' => self.mobile
+      }
+      response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
+      payload['tcid'] = response.to_s
+      save
+    end
+
   private
     def ipcrs_cookie_file
       Rails.root.join('tmp', 'cache', "#{self.id}.cookie").to_s
