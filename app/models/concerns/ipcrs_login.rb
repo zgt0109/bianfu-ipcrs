@@ -75,5 +75,25 @@ module IpcrsLogin
       payload['csrf_safe'] = response.body.match(/value=.*([a-z0-9]{32})/)[1]
       save
     end
+
+    # 选择问题验证
+    def ipcrs_login_question
+      url = 'https://ipcrs.pbccrc.org.cn/setSafetyLevel.do'
+      headers = {
+        'Host'      => 'ipcrs.pbccrc.org.cn',
+        'Referer'   => 'https://ipcrs.pbccrc.org.cn/setSafetyLevel.do',
+        'Cookie'    =>  ipcrs_cookie
+      }
+      params = {
+        'org.apache.struts.taglib.html.TOKEN' => payload['csrf_safe'],
+        'method'    => 'chooseCertify',
+        'authtype' => '2'
+      }
+      response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
+      if response.body.encode('UTF-8').match('目前系统尚未收录足够的信息对您的身份进行')
+        self.state = 'failed_uninfo'
+        save
+      end
+    end
   end
 end
