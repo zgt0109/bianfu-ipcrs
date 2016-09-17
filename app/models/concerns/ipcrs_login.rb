@@ -65,47 +65,44 @@ module IpcrsLogin
         self.state = 'failed_login_image'
         save
       end
-
-      if response.body.encode('UTF-8').match('欢迎登录个人信用信息服务平台')
+      if response.body.encode('UTF-8').match('您可以通过以下步骤获取信用报告')
         self.state = 'login'
         save
       end
     end
 
-    # 设置安全等级
-    def ipcrs_login_safe
-      url = 'https://ipcrs.pbccrc.org.cn/setSafetyLevel.do'
+    # 申请信用报告
+    def ipcrs_login_report
+      url = 'https://ipcrs.pbccrc.org.cn/reportAction.do?method=applicationReport'
       headers = {
         'Host'      => 'ipcrs.pbccrc.org.cn',
-        'Referer'   => 'https://ipcrs.pbccrc.org.cn/setSafetyLevel.do?method=index&isnew=true',
+        'Referer'   => 'https://ipcrs.pbccrc.org.cn/menu.do',
         'Cookie'    =>  ipcrs_cookie
       }
-      params = {
-        'method' => 'setSafetyLevelStep2',
-      }
-      response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
-      payload['csrf_safe'] = response.body.match(/value=.*([a-z0-9]{32})/)[1]
+      response = RestClient::Request.execute(method: 'get', url: url, :headers => headers, :verify_ssl=> false)
+      payload['login']['csrf_report'] = response.body.match(/value=.*([a-z0-9]{32})/)[1]
       save
     end
 
     # 选择问题验证
     def ipcrs_login_question
-      url = 'https://ipcrs.pbccrc.org.cn/setSafetyLevel.do'
+      url = 'https://ipcrs.pbccrc.org.cn/reportAction.do'
       headers = {
         'Host'      => 'ipcrs.pbccrc.org.cn',
-        'Referer'   => 'https://ipcrs.pbccrc.org.cn/setSafetyLevel.do',
+        'Referer'   => 'https://ipcrs.pbccrc.org.cn/menu.do',
         'Cookie'    =>  ipcrs_cookie
       }
       params = {
-        'org.apache.struts.taglib.html.TOKEN' => payload['csrf_safe'],
-        'method'    => 'chooseCertify',
-        'authtype' => '2'
+        'org.apache.struts.taglib.html.TOKEN' => payload['login']['csrf_report'],
+        'method' => 'checkishasreport',
+        'authtype'=> 2,
+        'ApplicationOption' => 25,
+        'ApplicationOption' => 24,
+        'ApplicationOption' => 21,
       }
       response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
-      if response.body.encode('UTF-8').match('目前系统尚未收录足够的信息对您的身份进行')
-        self.state = 'failed_uninfo'
-        save
-      end
+    
+      binding.pry
     end
   end
 end
