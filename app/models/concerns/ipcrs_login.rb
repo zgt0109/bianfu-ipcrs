@@ -69,6 +69,8 @@ module IpcrsLogin
         self.state = 'login'
         save
       end
+
+      binding.pry
     end
 
     # 申请信用报告
@@ -101,7 +103,18 @@ module IpcrsLogin
         'ApplicationOption' => 21,
       }
       response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
-    
+      # derivativecode
+      # response.body.encode('UTF-8').match /value="(\w{27}=)"/
+
+      # businesstype
+      # response.body.encode('UTF-8').match /businesstype.*?value="(\d*)"/m
+
+      # response.body.encode('UTF-8').match /kbanum.*?value="(\d*)"/m
+
+      # questionno
+      # response.body.encode('UTF-8').scan /questionno.*?value="(\d*)"/m
+
+
       binding.pry
     end
   end
