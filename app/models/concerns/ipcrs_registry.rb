@@ -113,6 +113,7 @@ module IpcrsRegistry
       }
       response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
 
+      # @todo: 该登录名已存在
       if response.body.encode('UTF-8').match('您在个人信用信息平台已注册成功')
         self.state = 'registered'
         save

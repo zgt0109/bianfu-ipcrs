@@ -101,13 +101,12 @@ module IpcrsLogin
         'org.apache.struts.taglib.html.TOKEN' => payload['login']['csrf_report'],
         'method' => 'checkishasreport',
         'authtype'=> 2,
-        'ApplicationOption' => 25,
-        'ApplicationOption' => 24,
         'ApplicationOption' => 21,
       }
       response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
 
       body = response.body.encode('UTF-8')
+      payload['question']['csrf_kba']       = body.match(/value=.*([a-z0-9]{32})/)[1]
       payload['question']['derivativecode'] = body.match(/value="(\w{27}=)"/)[1]
       payload['question']['businesstype']   = body.match(/businesstype.*?value="(\d*)"/m)[1]
       payload['question']['kbanum']         = body.match(/kbanum.*?value="(\d*)"/m)[1]
@@ -122,6 +121,36 @@ module IpcrsLogin
       end
       state = 'pending-question'
       save
+    end
+
+
+    # 问题库
+
+    def ipcrs_report_kba
+      url = 'https://ipcrs.pbccrc.org.cn/reportAction.do?method=submitKBA'
+      headers = {
+        'Host'      => 'ipcrs.pbccrc.org.cn',
+        'Referer'   => 'https://ipcrs.pbccrc.org.cn/reportAction.do?method=checkishasreport',
+        'Cookie'    =>  ipcrs_cookie
+      }
+
+      params = {
+        'org.apache.struts.taglib.html.TOKEN' => payload['question']['csrf_kba'],
+        'method' => '',
+        'authtype'=> 2,
+        'ApplicationOption' => 21,
+      }
+      build_kba_params.each {|kba| params.merge!(kba)}
+      response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
+      if response.body.encode('UTF-8').match('报告查询申请正在受理')
+        state = 'pending-report'
+        save
+      end
+
+      if response.body.encode('UTF-8').match('报告查询申请正在受理')
+        state = 'pending-report'
+        save
+      end
     end
   end
 end
