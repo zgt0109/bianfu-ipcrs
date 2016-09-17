@@ -28,17 +28,7 @@ class User < ApplicationRecord
   before_create {
     self.account = "bf_#{(0..9).to_a.shuffle[0..6].join}"
     self.password = "#{Pinyin.t(name, splitter: '')}#{cert_no.last(6)}"
-    self.payload = {registry:{}, login:{}}
+    self.payload = {registry:{}, login:{}, question:{}}
   }
-
-
-  def add_question
-    questionno, question, options = ipcrs_login_question
-    question.map.with_index  do|q, index|
-      questionnaires.build question: q.squeeze, options: options.slice(index*5,5)
-    end
-    save
-  end
-
 
 end

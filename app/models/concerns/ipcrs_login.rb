@@ -87,6 +87,10 @@ module IpcrsLogin
 
     # 选择问题验证
     def ipcrs_login_question
+      ipcrs_login_bootstrap
+      ipcrs_login_captcha_image
+      ipcrs_login
+      ipcrs_login_report
       url = 'https://ipcrs.pbccrc.org.cn/reportAction.do'
       headers = {
         'Host'      => 'ipcrs.pbccrc.org.cn',
@@ -102,24 +106,22 @@ module IpcrsLogin
         'ApplicationOption' => 21,
       }
       response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
-      # derivativecode
-      # response.body.encode('UTF-8').match /value="(\w{27}=)"/
 
-      # businesstype
-      # response.body.encode('UTF-8').match /businesstype.*?value="(\d*)"/m
+      body = response.body.encode('UTF-8')
+      payload['question']['derivativecode'] = body.match(/value="(\w{27}=)"/)[1]
+      payload['question']['businesstype']   = body.match(/businesstype.*?value="(\d*)"/m)[1]
+      payload['question']['kbanum']         = body.match(/kbanum.*?value="(\d*)"/m)[1]
 
-      # response.body.encode('UTF-8').match /kbanum.*?value="(\d*)"/m
+      questionno  = body.scan(/questionno.*?value="(\d*)"/m).flatten
+      question    = body.scan(/question[^no]*?value="(.*?)"/m).flatten.map{|opt| opt.squeeze}
+      options     = body.scan(/options\d+.*?value="(.*?)"/m).flatten.map{|opt| opt.squeeze}
 
-      [
-        #questionno
-        response.body.encode('UTF-8').scan(/questionno.*?value="(\d*)"/m).flatten,
 
-        # question
-        response.body.encode('UTF-8').scan(/question[^no]*?value="(.*?)"/m).flatten.map{|opt| opt.squeeze},
-
-        # options
-        response.body.encode('UTF-8').scan(/options\d+.*?value="(.*?)"/m).flatten.map{|opt| opt.squeeze}
-      ]
+      questionno.map.with_index do |no, i|
+        questionnaires.build(no: no, question: question[i], options: options.slice(i*5, 5))
+      end
+      state = 'pending-question'
+      save
     end
   end
 end

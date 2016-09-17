@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160917085047) do
+ActiveRecord::Schema.define(version: 20160917103153) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -35,6 +35,7 @@ ActiveRecord::Schema.define(version: 20160917085047) do
     t.string   "choice",                  comment: "回答"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string   "no",                      comment: "问题编号"
   end
 
   create_table "users", id: :uuid, default: -> { "uuid_generate_v4()" }, force: :cascade, comment: "央行征信注册信息" do |t|
