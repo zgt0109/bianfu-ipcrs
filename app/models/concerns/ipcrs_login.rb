@@ -5,13 +5,16 @@ module IpcrsLogin
   included do
 
     def ipcrs_login_bootstrap
-      url = 'https://ipcrs.pbccrc.org.cn/page/login/loginreg.jsp'
+      url = 'https://ipcrs.pbccrc.org.cn/login.do?method=initLogin'
       headers = {
         'Host'        => 'ipcrs.pbccrc.org.cn',
-        'User-Agent'  => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'
+        'User-Agent'  => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+        'Referer'     => 'https://ipcrs.pbccrc.org.cn/top1.do'
       }
       response        = RestClient::Request.execute(method: 'get', url: url, :headers => headers, :verify_ssl=> false)
       response.cookie_jar.save(ipcrs_cookie_file, :session => true)
+      payload['login']['csrf_login'] = response.body.match(/value=.*([a-z0-9]{32})/)[1]
+      save
     end
     # 图片验证码解析
     def ipcrs_login_captcha_image
@@ -36,13 +39,12 @@ module IpcrsLogin
       }
       response = RestClient.post 'http://upload.chaojiying.net/Upload/Processing.php', params
       response = JSON.parse(response)
-      payload[:image_login] = response['pic_str'].downcase
+      payload['login']['image'] = response['pic_str'].downcase
       save
     end
 
 
     # 用户登录
-
     def ipcrs_login
       url = 'https://ipcrs.pbccrc.org.cn/login.do'
       headers = {
@@ -51,13 +53,23 @@ module IpcrsLogin
         'Cookie'    =>  ipcrs_cookie
       }
       params = {
+        'org.apache.struts.taglib.html.TOKEN' => payload['login']['csrf_login'],
         'method' => 'login',
         'date' => (Time.now.to_f*1000).to_i,
         'loginname' => account,
         'password' => password,
-        '_@IMGRC@_' => payload['image_login'],
+        '_@IMGRC@_' => payload['login']['image'],
       }
       response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
+      if response.body.encode('UTF-8').match('验证码输入错误')
+        self.state = 'failed_login_image'
+        save
+      end
+
+      if response.body.encode('UTF-8').match('欢迎登录个人信用信息服务平台')
+        self.state = 'login'
+        save
+      end
     end
 
     # 设置安全等级
