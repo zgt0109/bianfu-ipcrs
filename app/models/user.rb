@@ -23,6 +23,8 @@ class User < ApplicationRecord
   include IpcrsRegistry
   include IpcrsLogin
 
+  has_many :questionnaires
+
   before_create {
     self.account = "bf_#{(0..9).to_a.shuffle[0..6].join}"
     self.password = "#{Pinyin.t(name, splitter: '')}#{cert_no.last(6)}"

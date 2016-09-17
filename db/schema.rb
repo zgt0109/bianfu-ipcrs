@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160916113233) do
+ActiveRecord::Schema.define(version: 20160917085047) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -26,6 +26,15 @@ ActiveRecord::Schema.define(version: 20160916113233) do
     t.index ["slug", "sluggable_type"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type", using: :btree
     t.index ["sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_id", using: :btree
     t.index ["sluggable_type"], name: "index_friendly_id_slugs_on_sluggable_type", using: :btree
+  end
+
+  create_table "questionnaires", id: :uuid, default: -> { "uuid_generate_v4()" }, force: :cascade, comment: "用户问卷" do |t|
+    t.uuid     "user_id",                 comment: "关联用户"
+    t.string   "question",                comment: "问题"
+    t.json     "options",                 comment: "选择项"
+    t.string   "choice",                  comment: "回答"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "users", id: :uuid, default: -> { "uuid_generate_v4()" }, force: :cascade, comment: "央行征信注册信息" do |t|
