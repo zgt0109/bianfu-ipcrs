@@ -114,6 +114,11 @@ module IpcrsLogin
       # questionno
       # response.body.encode('UTF-8').scan /questionno.*?value="(\d*)"/m
 
+      # question
+      # response.body.encode('UTF-8').scan /question[^no]*?value="(.*?)"/m
+
+      # options
+      # response.body.encode('UTF-8').scan /options\d+.*?value="(.*?)"/m
 
       binding.pry
     end
