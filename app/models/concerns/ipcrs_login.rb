@@ -61,6 +61,7 @@ module IpcrsLogin
         '_@IMGRC@_' => payload['login']['image'],
       }
       response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
+      # @TODO: 您的账户已经销户，请重新提交注册申请
       if response.body.encode('UTF-8').match('验证码输入错误')
         self.state = 'failed_login_image'
         save
@@ -104,28 +105,31 @@ module IpcrsLogin
         'ApplicationOption' => 21,
       }
       response = RestClient::Request.execute(method: 'post', url: url, :payload => params, :headers => headers, :verify_ssl=> false)
-
       body = response.body.encode('UTF-8')
-      payload['question']['csrf_kba']       = body.match(/value=.*([a-z0-9]{32})/)[1]
-      payload['question']['derivativecode'] = body.match(/value="(\w{27}=)"/)[1]
-      payload['question']['businesstype']   = body.match(/businesstype.*?value="(\d*)"/m)[1]
-      payload['question']['kbanum']         = body.match(/kbanum.*?value="(\d*)"/m)[1]
 
-      questionno  = body.scan(/questionno.*?value="(\d*)"/m).flatten
-      question    = body.scan(/question[^no]*?value="(.*?)"/m).flatten.map{|opt| opt.squeeze}
-      options     = body.scan(/options\d+.*?value="(.*?)"/m).flatten.map{|opt| opt.squeeze}
+      
+      if body.match('目前系统尚未收录足够的信息')
+        self.state = 'failed-uninfo'
+      else
+        payload['question']['csrf_kba']       = body.match(/value=.*([a-z0-9]{32})/)[1]
+        payload['question']['derivativecode'] = body.match(/value="(\w{27}=)"/)[1]
+        payload['question']['businesstype']   = body.match(/businesstype.*?value="(\d*)"/m)[1]
+        payload['question']['kbanum']         = body.match(/kbanum.*?value="(\d*)"/m)[1]
+
+        questionno  = body.scan(/questionno.*?value="(\d*)"/m).flatten
+        question    = body.scan(/question[^no]*?value="(.*?)"/m).flatten.map{|opt| opt.squeeze}
+        options     = body.scan(/options\d+.*?value="(.*?)"/m).flatten.map{|opt| opt.squeeze}
 
 
-      questionno.map.with_index do |no, i|
-        questionnaires.build(no: no, question: question[i], options: options.slice(i*5, 5))
+        questionno.map.with_index do |no, i|
+          questionnaires.build(no: no, question: question[i], options: options.slice(i*5, 5))
+        end
+        self.state = 'pending-question'
       end
-      state = 'pending-question'
       save
     end
 
-
     # 问题库
-
     def ipcrs_report_kba
       url = 'https://ipcrs.pbccrc.org.cn/reportAction.do?method=submitKBA'
       headers = {
