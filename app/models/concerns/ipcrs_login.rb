@@ -70,7 +70,6 @@ module IpcrsLogin
         save
       end
 
-      binding.pry
     end
 
     # 申请信用报告
@@ -111,16 +110,16 @@ module IpcrsLogin
 
       # response.body.encode('UTF-8').match /kbanum.*?value="(\d*)"/m
 
-      # questionno
-      # response.body.encode('UTF-8').scan /questionno.*?value="(\d*)"/m
+      [
+        #questionno
+        response.body.encode('UTF-8').scan(/questionno.*?value="(\d*)"/m).flatten,
 
-      # question
-      # response.body.encode('UTF-8').scan /question[^no]*?value="(.*?)"/m
+        # question
+        response.body.encode('UTF-8').scan(/question[^no]*?value="(.*?)"/m).flatten.map{|opt| opt.squeeze},
 
-      # options
-      # response.body.encode('UTF-8').scan /options\d+.*?value="(.*?)"/m
-
-      binding.pry
+        # options
+        response.body.encode('UTF-8').scan(/options\d+.*?value="(.*?)"/m).flatten.map{|opt| opt.squeeze}
+      ]
     end
   end
 end

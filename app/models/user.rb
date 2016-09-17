@@ -30,4 +30,15 @@ class User < ApplicationRecord
     self.password = "#{Pinyin.t(name, splitter: '')}#{cert_no.last(6)}"
     self.payload = {registry:{}, login:{}}
   }
+
+
+  def add_question
+    questionno, question, options = ipcrs_login_question
+    question.map.with_index  do|q, index|
+      questionnaires.build question: q.squeeze, options: options.slice(index*5,5)
+    end
+    save
+  end
+
+
 end
